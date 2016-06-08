@@ -6,6 +6,11 @@ public class Logs {
 	private Log[] logs;
 	private String id;
 	
+	public Logs(Log[] logs, String id) {
+		this.logs = logs;
+		this.id = id;
+	}
+	
 	//Getter and Setter methods
 	public Log[] getLogs() {
 		return logs;

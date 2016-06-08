@@ -35,6 +35,7 @@ public class DataStreamDriver {
 			ArrayList logArrayList = driver.readJson(br);
 			System.out.println(logArrayList.get(0));
 			
+			driver.makeTally(logArrayList);
 			
 //			//create logs object
 //			Logs logsObj = gson.fromJson(br, Logs.class);
@@ -84,7 +85,11 @@ public class DataStreamDriver {
 	
 	//Consume log message and transform into a tally of all logs for each unique email address
 	//Also, add onto global tally
-	public void makeTally() {
+	public void makeTally(ArrayList logs) {
+		
+		for(Object c : logs) {
+			System.out.println(c.toString());
+		}
 		
 	}
 }

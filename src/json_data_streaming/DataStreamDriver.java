@@ -1,48 +1,47 @@
 package json_data_streaming;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.io.BufferedReader;  
-import java.io.File;
 import java.io.FileReader;  
-import java.io.IOException;  
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;  
 import java.util.Map;
 
 public class DataStreamDriver {
 
 	public static Map<String, Integer> globalTallyMap = new HashMap<String, Integer>();
-	public static Map<String, Map<String,Integer>> globalTally = new HashMap<String, Map<String,Integer>>();
+	public static JsonObject globalTally = new JsonObject();
 	
 	public static void main(String[] args) {
 		DataStreamDriver driver = new DataStreamDriver();
 		
 		try {
-			System.out.println("Reading JSON from a file");
-			System.out.println("------------------------");
+			System.out.println("Reading JSON from logs_xx.json");
+			System.out.println("------------------------------");
 			
 			for(int i=0; i<100; i++) {
-				BufferedReader br = new BufferedReader(new FileReader("/Users/Jasper/Documents/workspace/json_data_streaming/logs/logs_"+i+".json"));
+				BufferedReader br = new BufferedReader(new FileReader(
+					"/Users/Jasper/Documents/workspace/json_data_streaming/logs/logs_"+i+".json"));
 			
 				Logs logs = driver.readJson(br);
 				for(int j=0; j<logs.getLogs().length; j++) {
 					driver.makeTally(logs.getLog(j));
 				}
 			}
+
+//			System.out.println(globalTallyMap);
 			
-			System.out.println(globalTallyMap);
+			Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().
+							setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
+			
+			//print out the updated global tally
+	        System.out.println(gson.toJson(globalTally));
 			
 			
 		} catch (IOException e) {
@@ -64,7 +63,6 @@ public class DataStreamDriver {
 	//Consume log message and transform into a tally of all logs for each unique email address
 	//Also, add onto global tally
 	public void makeTally(Log log) {
-//		System.out.println("INSIDE OF MAKETALLY");
 		String email = log.getEmail();
 		if(!globalTallyMap.containsKey(log.getEmail())) {
 			globalTallyMap.put(email, 1);
@@ -72,11 +70,26 @@ public class DataStreamDriver {
 			globalTallyMap.put(email, globalTallyMap.get(email)+1);
 		}
 		
+		JsonArray tallies = new JsonArray();
 		
+		for(Map.Entry<String,Integer> entry : globalTallyMap.entrySet()) {
+			JsonObject tally = new JsonObject();
+			tally.addProperty("email", entry.getKey());
+			tally.addProperty("total", entry.getValue());
+			tallies.add(tally);
+		}
+		
+		globalTally.add("tally", tallies);
 	}
 	
-	//Format globalTally into the example of a tally message
-	private void updateGlobalTally(Map<String, Integer> gMap) {
-		globalTally.put("tally", gMap);
-	}
+//	//Format globalTally into the example of a tally message
+//	private void updateGlobalTally(Map<String, Integer> gMap) {
+//		JsonObject globalTally = new JsonObject();
+//		JsonArray tallies = new JsonArray();
+//		
+//		JsonObject tally = new JsonObject();
+//
+//		
+//		
+//	}
 }
